@@ -3,7 +3,9 @@ os: linux
 
 files:
   - source: /
-    destination: /home/ec2-user
+    destination: /home/ec2-user/app
+    overwrite: yes
 
 hooks:
-  Application
+  ApplicationStart:
+    - location: Scripts/deploy.sh

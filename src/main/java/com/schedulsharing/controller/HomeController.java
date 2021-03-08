@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/")
 public class HomeController {
+    //2
     @GetMapping
     public String hello() {
         return "hello jenkins~";

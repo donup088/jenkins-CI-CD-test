@@ -1,0 +1,81 @@
+pipeline{
+    agent any
+
+    // 3분주기로 파이프라인 구동동
+   triggers{
+        pollSCM('*/3 * * * *')
+    }
+    // AWS 명령어를 자유롭게 쓰기위함
+    // 시스템 환경변수 설정
+    environment{
+        AWS_ACCESS_KEY_ID=credentials('awsAccessKeyId')
+        AWS_SECRET_ACCESS_KEY=credentials('awsSecretAccessKey')
+        AWS_DEFAULT_REGION='ap-northeast-2'
+        HOME='.'
+    }
+    stage('Prepare'){
+    // 리포지토리를 받아옴
+        agent any
+
+        steps{
+            echo 'Clonning Repository'
+
+            git url: 'https://github.com/donup3/jenkins-CI-CD-test'
+                branch: 'master'
+                credentialsId: 'gittest'
+        }
+
+        post{
+            success {
+                echo 'Successfully Clonned Repository'
+            }
+            always{
+                echo "i tryed..."
+            }
+            cleanup {
+                echo "after all other post condition"
+            }
+        }
+    }
+    // 프로덕션 환경에만 추가해야 할 것들을 추가할 수 있음
+    stage('Only for production'){
+        when{
+            branch 'production'
+            environment name: 'APP_ENV', value: 'prod'
+            anyof{
+                environment name: 'DEPLOY_TO', value: 'production'
+                environment name: 'DEPLOY_TO', value 'staging'
+            }
+        }
+    }
+
+    stage('Build Backend'){
+        agent any
+        steps{
+            echo 'Build Backend'
+            dir('./schedule-sharing-backend'){
+                sh """
+                docker build . -t server --build-arg env=${PROD}
+                """
+            }
+        }
+
+        post{
+            failure{
+                error 'This pipeline stops here...'
+            }
+        }
+    }
+
+    stage('Deploy Backend'){
+            agent any
+            steps{
+                echo 'Deploy Backend'
+                dir('./schedule-sharing-backend'){
+                    sh """
+                    docker run -p 80:80 -d server
+                    """
+                }
+            }
+    }
+}

@@ -24,7 +24,6 @@ pipeline {
                 // failed, record the test results and archive the jar file.
                 success {
                     echo 'Successfully Cloned Repository'
-
                 }
 
                 always {
@@ -39,17 +38,16 @@ pipeline {
 
         stage('Bulid Backend') {
           agent any
-
           steps {
             echo 'Build Backend'
 
             sh """
+            cp /var/lib/jenkins/workspace/application.yml ./src/main/resources/application.yml
             chmod +x ./gradlew
             ./gradlew build
-            cp /var/lib/jenkins/workspace/application.yml ./src/main/resources/application.yml
 
             docker build -t donup08/schedule-test-${BUIlD_NUMBER} ./
-            docker push donup08/schedule-test-${BUIlD_NUMBER}
+
             """
           }
 
@@ -60,16 +58,17 @@ pipeline {
           }
         }
 
+
         stage('Deploy Backend') {
           agent any
 
           steps {
             echo 'Deploy Backend'
-
             sh """
             docker run -d -p 8080:8080 donup08/schedule-test-${BUIlD_NUMBER}
             """
           }
+
         }
     }
 }

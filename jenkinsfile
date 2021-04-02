@@ -65,6 +65,7 @@ pipeline {
           steps {
             echo 'Deploy Backend'
             sh """
+            docker stop `docker ps -q`
             docker run -d -p 8080:8080 donup08/schedule-test-${BUIlD_NUMBER}
             """
           }

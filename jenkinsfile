@@ -6,13 +6,6 @@ pipeline {
         pollSCM('*/3 * * * *')
     }
 
-    environment {
-      AWS_ACCESS_KEY_ID = credentials('awsAccessKeyId')
-      AWS_SECRET_ACCESS_KEY = credentials('awsSecretAccessKey')
-      AWS_DEFAULT_REGION = 'ap-northeast-2'
-      HOME = '.' // Avoid npm root owned
-    }
-
     stages {
         // 레포지토리를 다운로드 받음
         stage('Prepare') {
@@ -51,6 +44,9 @@ pipeline {
             sh """
             chmod +x ./gradlew
             ./gradlew build
+
+            docker build -t donup08/schedule-test ./
+            docker push donup08/schedule-test
             """
           }
 
@@ -66,33 +62,6 @@ pipeline {
 
           steps {
             echo 'Deploy Backend'
-
-                sh '''
-                echo "> 현재 구동 중인 애플리케이션 pid 확인"
-
-                CURRENT_PID=$(pgrep -f scheduler.*.jar)
-
-                echo "현재 구동 중인 애플리케이션 pid: $CURRENT_PID"
-
-                if [ -z "$CURRENT_PID" ]; then
-                        echo "> 현재 구동 중인 애플리케이션이 없으므로 종료하지 않습니다."
-                else
-                        echo "> kill -15 $CURRENT_PID"
-                        kill -15 $CURRENT_PID
-                        sleep 5
-                fi
-
-                echo "> 새 애플리케이션 배포"
-
-                JAR_NAME=$(ls -tr $REPOSITORY/ | grep jar | tail -n 1)
-
-                echo "> JAR NAME: $JAR_NAME"
-
-                nohup java -jar $REPOSITORY/$JAR_NAME 2>&1 &
-                pwd
-                cd build/libs
-                nohup java -jar build/libs/scheduler-0.0.1-SNAPSHOT.jar	 2>&1 &
-                '''
 
           }
 

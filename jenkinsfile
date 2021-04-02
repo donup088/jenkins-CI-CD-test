@@ -46,7 +46,7 @@ pipeline {
             sh """
             chmod +x ./gradlew
             ./gradlew build
-
+            cp /var/lib/jenkins/workspace/application.yml ./src/main/resources/application.yml
 
             docker build -t donup08/schedule-test-${BUIlD_NUMBER} ./
             docker push donup08/schedule-test-${BUIlD_NUMBER}

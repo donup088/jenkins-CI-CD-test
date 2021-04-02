@@ -38,6 +38,7 @@ pipeline {
 
         stage('Bulid Backend') {
           agent any
+
           steps {
             echo 'Build Backend'
 
@@ -45,8 +46,8 @@ pipeline {
             chmod +x ./gradlew
             ./gradlew build
 
-            docker build -t donup08/schedule-test ./
-            docker push donup08/schedule-test
+            docker build -t donup08/schedule-test-${BUIlD_NUMBER} ./
+            docker push donup08/schedule-test-${BUIlD_NUMBER}
             """
           }
 
@@ -62,6 +63,10 @@ pipeline {
 
           steps {
             echo 'Deploy Backend'
+
+            sh """
+            docker run -d -p 8080:8080 donup08/schedule-test-${BUIlD_NUMBER}
+            """
           }
         }
     }

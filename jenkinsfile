@@ -47,6 +47,7 @@ pipeline {
             chmod +x ./gradlew
             ./gradlew build
 
+
             docker build -t donup08/schedule-test-${BUIlD_NUMBER} ./
             docker push donup08/schedule-test-${BUIlD_NUMBER}
             """
